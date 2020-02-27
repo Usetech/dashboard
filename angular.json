@@ -60,7 +60,15 @@
                   "with": "src/app/frontend/environments/environment.prod.ts"
                 }
               ]
-            }
+            },
+	    "ru": {
+		"aot": true,
+		"outputPath": "dist/amd64/public/ru/",
+		"i18nFile": "i18n/ru/messages.ru.xlf",
+		"i18nFormat": "xlf",
+		"i18nLocale": "ru",
+		"i18nMissingTranslation": "error",
+	    } 
           }
         },
         "serve": {
@@ -72,6 +80,9 @@
           "configurations": {
             "production": {
               "browserTarget": "kubernetes-dashboard:build:production"
+            },
+            "ru": {
+              "browserTarget": "kubernetes-dashboard:build:ru"
             }
           }
         },
