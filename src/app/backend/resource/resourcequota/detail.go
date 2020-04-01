@@ -33,6 +33,8 @@ type ResourceQuotaDetail struct {
 	// Scopes defines quota scopes
 	Scopes []v1.ResourceQuotaScope `json:"scopes,omitempty"`
 
+	ScopeSelector *v1.ScopeSelector `json:"scopeSelector,omitempty"`
+
 	// StatusList is a set of (resource name, Used, Hard) tuple.
 	StatusList map[v1.ResourceName]ResourceStatus `json:"statusList,omitempty"`
 }
@@ -54,9 +56,10 @@ func ToResourceQuotaDetail(rawResourceQuota *v1.ResourceQuota) *ResourceQuotaDet
 		}
 	}
 	return &ResourceQuotaDetail{
-		ObjectMeta: api.NewObjectMeta(rawResourceQuota.ObjectMeta),
-		TypeMeta:   api.NewTypeMeta(api.ResourceKindResourceQuota),
-		Scopes:     rawResourceQuota.Spec.Scopes,
-		StatusList: statusList,
+		ObjectMeta:    api.NewObjectMeta(rawResourceQuota.ObjectMeta),
+		TypeMeta:      api.NewTypeMeta(api.ResourceKindResourceQuota),
+		Scopes:        rawResourceQuota.Spec.Scopes,
+		ScopeSelector: rawResourceQuota.Spec.ScopeSelector,
+		StatusList:    statusList,
 	}
 }
