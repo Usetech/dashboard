@@ -29,6 +29,10 @@
             "translation": "i18n/ko/messages.ko.xlf",
             "baseHref": ""
           },
+          "ru": {
+            "translation": "i18n/ru/messages.ru.xlf",
+            "baseHref": ""
+          },
           "zh": {
             "translation": "i18n/zh/messages.zh.xlf",
             "baseHref": ""
@@ -117,7 +121,7 @@
 		"i18nFormat": "xlf",
 		"i18nLocale": "ru",
 		"i18nMissingTranslation": "error",
-	    } 
+	    }
           }
         },
         "serve": {
