@@ -13,10 +13,12 @@
 // limitations under the License.
 
 import {Component, Input, OnInit} from '@angular/core';
-import {MatDialog, MatDialogConfig} from '@angular/material';
+import {MatDialog, MatDialogConfig} from '@angular/material/dialog';
 import {StringMap} from '@api/backendapi';
 
 import {ChipDialog} from './chipdialog/dialog';
+
+const truncateUrl = require('truncate-url');
 
 export interface Chip {
   key: string;
@@ -77,6 +79,10 @@ export class ChipsComponent implements OnInit {
 
   isTooLong(value: string): boolean {
     return value !== undefined && value.length > MAX_CHIP_VALUE_LENGTH;
+  }
+
+  getTruncatedURL(url: string): string {
+    return truncateUrl(url, MAX_CHIP_VALUE_LENGTH);
   }
 
   isHref(value: string): boolean {

@@ -34,6 +34,7 @@ export class GraphComponent implements OnInit, OnChanges {
   customColors = {};
   yAxisLabel = '';
   yAxisTickFormatting = (value: number) => `${value} ${this.yAxisSuffix_}`;
+  yScaleMax = 0;
 
   private suffixMap_: Map<number, string> = new Map<number, string>();
   private yAxisSuffix_ = '';
@@ -62,6 +63,7 @@ export class GraphComponent implements OnInit, OnChanges {
     let series: FormattedValue[];
     let highestSuffixPower = 0;
     let highestSuffix = '';
+    let maxValue = 0;
 
     switch (this.graphType) {
       case GraphType.Memory:
@@ -99,10 +101,14 @@ export class GraphComponent implements OnInit, OnChanges {
       } as DataPoint);
     });
 
-    return [
+    const result = [
       {
         name: this.id,
-        series: points.map(point => {
+        series: points.reduce(this._average.bind(this), []).map(point => {
+          if (maxValue < point.y) {
+            maxValue = point.y;
+          }
+
           return {
             value: point.y,
             name: timeFormat('%H:%M')(new Date(1000 * point.x)),
@@ -110,6 +116,62 @@ export class GraphComponent implements OnInit, OnChanges {
         }),
       },
     ];
+
+    // This way if max value is very small i.e. 0.0001 graph will be scaled to the more significant
+    // value.
+    switch (this.graphType) {
+      case GraphType.CPU:
+        this.yScaleMax = maxValue + 0.01;
+        break;
+      case GraphType.Memory:
+        this.yScaleMax = maxValue + 10;
+        break;
+      default:
+    }
+
+    return result;
+  }
+
+  // Calculate the average usage based on minute intervals. If there are more data points within
+  // a single minute, they will be accumulated and an average will be taken.
+  private _average(
+    acc: DataPoint[],
+    point: DataPoint,
+    idx: number,
+    points: DataPoint[],
+  ): DataPoint[] {
+    if (idx > 0) {
+      const currMinute = this._getMinute(point.x);
+      const lastMinute = this._getMinute(points[idx - 1].x);
+
+      // Minute changed or we are at the end of an array
+      if (currMinute !== lastMinute || idx === points.length - 1) {
+        let i = idx - 2;
+        // Initialize with last minute
+        const minutes = [points[idx - 1].y];
+
+        // Track back all remaining points for the last minute
+        while (i >= 0 && lastMinute === this._getMinute(points[i].x)) {
+          minutes.push(points[i].y);
+          i--;
+        }
+
+        // Calculate an average of this minute values
+        const average = minutes.reduce((a, b) => a + b, 0) / minutes.length;
+
+        // Accumulate the result
+        return acc.concat({
+          x: points[idx - 1].x,
+          y: Number(average.toPrecision(3)),
+        });
+      }
+    }
+
+    return acc;
+  }
+
+  private _getMinute(date: number): number {
+    return new Date(1000 * date).getMinutes();
   }
 
   private getColor_(): Array<{name: string; value: string}> {

@@ -13,7 +13,8 @@
 // limitations under the License.
 
 import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {MatDialog, MatSelect} from '@angular/material';
+import {MatDialog} from '@angular/material/dialog';
+import {MatSelect} from '@angular/material/select';
 import {ActivatedRoute, NavigationEnd, Router} from '@angular/router';
 import {NamespaceList} from '@api/backendapi';
 import {Subject} from 'rxjs';
@@ -156,11 +157,11 @@ export class NamespaceSelectorComponent implements OnInit, OnDestroy {
 
           if (namespaceList.errors.length > 0) {
             for (const err of namespaceList.errors) {
-              this.notifications_.push(err.ErrStatus.message, NotificationSeverity.error);
+              this.notifications_.pushErrors([err]);
             }
           }
         },
-        undefined,
+        () => {},
         () => {
           this.onNamespaceLoaded_();
         },

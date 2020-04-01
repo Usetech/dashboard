@@ -31,7 +31,7 @@ LOCAL_GID=$(id -g)
 # command with K8S_DASHBOAD_NPM_CMD.
 # But if K8S_DASHBOARD_CMD is set, the command in K8S_DASHBOARD_CMD will be
 # executed instead of `npm ${K8S_DASHBOARD_NPM_CMD}`.
-K8S_DASHBOARD_NPM_CMD=$*
+K8S_DASHBOARD_NPM_CMD=${K8S_DASHBOARD_NPM_CMD:-*}
 
 # kubeconfig for dashboard.
 # This will be mounted and certain npm command can modify it,
@@ -40,8 +40,8 @@ K8S_DASHBOARD_NPM_CMD=$*
 if [[ -n "${K8S_DASHBOARD_KUBECONFIG}" ]] ; then
   K8S_OWN_CLUSTER=true
 else
-  touch ${DIR}/../../kind.kubeconfig
-  K8S_DASHBOARD_KUBECONFIG=$(pwd ${DIR}/../../)/kind.kubeconfig
+  touch /tmp/kind.kubeconfig
+  K8S_DASHBOARD_KUBECONFIG=/tmp/kind.kubeconfig
 fi
 
 # Bind addres for dashboard

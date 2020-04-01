@@ -14,7 +14,7 @@
 
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {Inject, Injectable} from '@angular/core';
-import {MatDialog} from '@angular/material';
+import {MatDialog} from '@angular/material/dialog';
 import {Router} from '@angular/router';
 import {
   AppDeploymentContentResponse,
@@ -96,7 +96,9 @@ export class CreateService {
       this.reportError(i18n.MSG_DEPLOY_DIALOG_ERROR, error.error);
       throw error;
     } else {
-      this.router_.navigate(['overview']);
+      this.router_.navigate(['overview'], {
+        queryParams: {[NAMESPACE_STATE_PARAM]: this.namespace_.current()},
+      });
     }
 
     return response;

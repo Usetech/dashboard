@@ -25,7 +25,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/pflag"
 
 	"github.com/kubernetes/dashboard/src/app/backend/args"
@@ -174,16 +174,19 @@ func main() {
 	http.Handle("/api/", apiHandler)
 	http.Handle("/config", handler.AppHandler(handler.ConfigHandler))
 	http.Handle("/api/sockjs/", handler.CreateAttachHandler("/api/sockjs"))
-	http.Handle("/metrics", prometheus.Handler())
+	http.Handle("/metrics", promhttp.Handler())
 
 	// Listen for http or https
 	if servingCerts != nil {
 		log.Printf("Serving securely on HTTPS port: %d", args.Holder.GetPort())
 		secureAddr := fmt.Sprintf("%s:%d", args.Holder.GetBindAddress(), args.Holder.GetPort())
 		server := &http.Server{
-			Addr:      secureAddr,
-			Handler:   http.DefaultServeMux,
-			TLSConfig: &tls.Config{Certificates: servingCerts},
+			Addr:    secureAddr,
+			Handler: http.DefaultServeMux,
+			TLSConfig: &tls.Config{
+				Certificates: servingCerts,
+				MinVersion:   tls.VersionTLS12,
+			},
 		}
 		go func() { log.Fatal(server.ListenAndServeTLS("", "")) }()
 	} else {
