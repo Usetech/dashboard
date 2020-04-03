@@ -74,6 +74,9 @@ type Container struct {
 
 	// Command arguments
 	Args []string `json:"args"`
+
+	// Compute Resources required by this container.
+	Resources v1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 // EnvVar represents an environment variable of a container.
@@ -196,11 +199,12 @@ func extractContainerInfo(containerList []v1.Container, pod *v1.Pod, configMaps 
 		vars = append(vars, evalEnvFrom(container, configMaps, secrets)...)
 
 		containers = append(containers, Container{
-			Name:     container.Name,
-			Image:    container.Image,
-			Env:      vars,
-			Commands: container.Command,
-			Args:     container.Args,
+			Name:      container.Name,
+			Image:     container.Image,
+			Env:       vars,
+			Commands:  container.Command,
+			Args:      container.Args,
+			Resources: container.Resources,
 		})
 	}
 	return containers
