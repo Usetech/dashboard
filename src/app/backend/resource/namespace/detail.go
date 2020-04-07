@@ -22,6 +22,7 @@ import (
 	"github.com/kubernetes/dashboard/src/app/backend/resource/limitrange"
 	rq "github.com/kubernetes/dashboard/src/app/backend/resource/resourcequota"
 	v1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sClient "k8s.io/client-go/kubernetes"
 )
@@ -37,6 +38,9 @@ type NamespaceDetail struct {
 
 	// ResourceLimits is list of limit ranges associated to the namespace
 	ResourceLimits []limitrange.LimitRangeItem `json:"resourceLimits"`
+
+	// NetworkPolicyList is list of network policies associated to the namespace
+	NetworkPolicyList *networkingv1.NetworkPolicyList `json:"networkPolicyList"`
 
 	// List of non-critical errors, that occurred during resource retrieval.
 	Errors []error `json:"errors"`
@@ -63,19 +67,37 @@ func GetNamespaceDetail(client k8sClient.Interface, name string) (*NamespaceDeta
 		return nil, criticalError
 	}
 
-	namespaceDetails := toNamespaceDetail(*namespace, resourceQuotaList, resourceLimits, nonCriticalErrors)
+	networkPolicyList, err := getNetworkPolicyList(client, *namespace)
+	nonCriticalErrors, criticalError = errors.AppendError(err, nonCriticalErrors)
+	if criticalError != nil {
+		return nil, criticalError
+	}
+
+	namespaceDetails := toNamespaceDetail(*namespace, resourceQuotaList,
+		resourceLimits, networkPolicyList, nonCriticalErrors)
 	return &namespaceDetails, nil
 }
 
-func toNamespaceDetail(namespace v1.Namespace, resourceQuotaList *rq.ResourceQuotaDetailList,
-	resourceLimits []limitrange.LimitRangeItem, nonCriticalErrors []error) NamespaceDetail {
+func toNamespaceDetail(namespace v1.Namespace,
+	resourceQuotaList *rq.ResourceQuotaDetailList,
+	resourceLimits []limitrange.LimitRangeItem,
+	networkPolicyList *networkingv1.NetworkPolicyList,
+	nonCriticalErrors []error) NamespaceDetail {
 
 	return NamespaceDetail{
 		Namespace:         toNamespace(namespace),
 		ResourceQuotaList: resourceQuotaList,
 		ResourceLimits:    resourceLimits,
+		NetworkPolicyList: networkPolicyList,
 		Errors:            nonCriticalErrors,
 	}
+}
+
+func getNetworkPolicyList(client k8sClient.Interface,
+	namespace v1.Namespace) (*networkingv1.NetworkPolicyList, error) {
+
+	return client.NetworkingV1().NetworkPolicies(namespace.Name).
+		List(api.ListEverything)
 }
 
 func getResourceQuotas(client k8sClient.Interface, namespace v1.Namespace) (*rq.ResourceQuotaDetailList, error) {
